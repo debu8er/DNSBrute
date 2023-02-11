@@ -26,3 +26,9 @@ optional arguments:
   -r RESOLVER, --resolver RESOLVER
                         reslover path.
 ```
+
+# Example command
+
+```
+python3 -d domain.tld -w wordlist.txt -r resolver.txt
+```
