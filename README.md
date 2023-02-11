@@ -10,10 +10,12 @@ massdns
 dnsgen
 
 # Help
-`
+
+```
 usage: DNSBrute.py [-h] -d DOMAIN -w WORDLIST -r RESOLVER
 
-This is tool for DNS BruteForce , This tool needs to install { subfinder - shuffledns - massdns - dnsgen }
+This is tool for DNS BruteForce
+This tool needs to install { subfinder - shuffledns - massdns - dnsgen }
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -23,4 +25,4 @@ optional arguments:
                         wordlist path.
   -r RESOLVER, --resolver RESOLVER
                         reslover path.
-`
+```
