@@ -1,5 +1,6 @@
 # DNSBrute
 This is tool for DNS BruteForce
+
 Uses (subfinder - crtsh - abusedb) for subdomain enumeration
 
 # Requirments
