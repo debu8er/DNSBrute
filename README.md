@@ -1,7 +1,7 @@
 # DNSBrute
 This is tool for DNS BruteForce
 
-Uses (subfinder - crtsh - abusedb) for subdomain enumeration
+Uses ```subfinder - crtsh - abusedb``` for subdomain enumeration
 
 # Requirments
 This tool needs to install => ```subfinder - dnsx - dnsgen```
